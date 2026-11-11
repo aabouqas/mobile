@@ -10,8 +10,11 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MyHomePage(),
+    return MaterialApp(
+      home: const MyHomePage(),
+        theme: ThemeData(
+            colorSchemeSeed: const Color(0xFF6B7B3E)
+        ),
     );
   }
 }
@@ -36,18 +39,14 @@ class MyHomePage extends StatelessWidget {
               child: const Text('A simple text',
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: 32,
+                    fontSize: 22,
                 ),
               ),
             ),
             ElevatedButton(
-              child: const Text('Click me',
-                  style: TextStyle(
-                    color: Color(0xFF6B7B3E),
-                  )
-              ),
+              child: const Text('Click me'),
               onPressed: () {
-                debugPrint('Button Pressed');
+                debugPrint('Button pressed');
               },
             )
           ],
