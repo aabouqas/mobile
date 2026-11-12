@@ -12,9 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const MyHomePage(),
-        theme: ThemeData(
-            colorSchemeSeed: const Color(0xFF6B7B3E)
-        ),
+      theme: ThemeData(colorSchemeSeed: const Color(0xFF6B7B3E)),
     );
   }
 }
@@ -36,11 +34,9 @@ class MyHomePage extends StatelessWidget {
                 color: const Color(0xFF6B7B3E),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text('A simple text',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                ),
+              child: const Text(
+                'A simple text',
+                style: TextStyle(color: Colors.white, fontSize: 22),
               ),
             ),
             ElevatedButton(
@@ -48,7 +44,7 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 debugPrint('Button pressed');
               },
-            )
+            ),
           ],
         ),
       ),

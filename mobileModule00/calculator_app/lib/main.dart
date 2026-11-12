@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:math_expressions/math_expressions.dart';
 
 void main() {
-  // debugPaintSizeEnabled = true;
   runApp(const MyApp());
 }
 
@@ -15,9 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const MyHomePage(),
-        theme: ThemeData(
-            colorSchemeSeed: const Color(0xFF6B7B3E)
-        ),
+      theme: ThemeData(colorSchemeSeed: const Color(0xFF6B7B3E)),
     );
   }
 }
@@ -29,15 +25,31 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   String expression = "0";
   String result = "0";
 
   static const List<String> btns = [
-    '7', '8', '9', 'C', 'AC',
-    '4', '5', '6', '+', '-',
-    '1', '2', '3', '*', '/',
-    '0', '.', '00', '=', ''];
+    '7',
+    '8',
+    '9',
+    'C',
+    'AC',
+    '4',
+    '5',
+    '6',
+    '+',
+    '-',
+    '1',
+    '2',
+    '3',
+    '*',
+    '/',
+    '0',
+    '.',
+    '00',
+    '=',
+    '',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -89,14 +101,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Color getColor(String txt){
+  Color getColor(String txt) {
     if ('AC'.contains(txt)) {
       return Colors.red;
     } else if ('+-/*='.contains(txt)) {
@@ -105,46 +117,48 @@ class _MyHomePageState extends State<MyHomePage> {
     return Colors.black;
   }
 
-  Widget _txt(String txt) => Text(txt, maxLines: 1, style: TextStyle(fontSize: 28, color: getColor(txt)),);
+  Widget _txt(String txt) => Text(
+    txt,
+    maxLines: 1,
+    style: TextStyle(fontSize: 28, color: getColor(txt)),
+  );
 
   Widget _btn(String txt) => SizedBox.expand(
     child: TextButton(
-      style: TextButton.styleFrom(
-        padding: .zero
-      ),
-      onPressed: txt.isEmpty ? null : () {
-      if (txt == '=') {
-        setState(() {
-          final res = calculate(expression);
-          setState(() => result = res);
-        });
-      } else if (txt == 'C') {
-        setState(() {
-          expression = expression.substring(0, expression.length - 1);
-          if (expression.isEmpty) {
-            expression = '0';
-          }
-        });
-      } else if (txt == 'AC') {
-        setState(() {
-          expression = '0';
-          result = '0';
-        });
-      }
-      else {
-        setState(() {
-          if (expression == '0') {
-            expression = txt;
-          } else {
-            expression += txt;
-          }
-        });
-      }
-    }, child: FittedBox(
-      fit: BoxFit.scaleDown,
-        child: _txt(txt)),),
+      style: TextButton.styleFrom(padding: .zero),
+      onPressed: txt.isEmpty
+          ? null
+          : () {
+              if (txt == '=') {
+                setState(() {
+                  final res = calculate(expression);
+                  setState(() => result = res);
+                });
+              } else if (txt == 'C') {
+                setState(() {
+                  expression = expression.substring(0, expression.length - 1);
+                  if (expression.isEmpty) {
+                    expression = '0';
+                  }
+                });
+              } else if (txt == 'AC') {
+                setState(() {
+                  expression = '0';
+                  result = '0';
+                });
+              } else {
+                setState(() {
+                  if (expression == '0') {
+                    expression = txt;
+                  } else {
+                    expression += txt;
+                  }
+                });
+              }
+            },
+      child: FittedBox(fit: BoxFit.scaleDown, child: _txt(txt)),
+    ),
   );
-
 
   String calculate(String expression) {
     try {

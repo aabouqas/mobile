@@ -12,9 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const MyHomePage(),
-        theme: ThemeData(
-            colorSchemeSeed: const Color(0xFF6B7B3E)
-        ),
+      theme: ThemeData(colorSchemeSeed: const Color(0xFF6B7B3E)),
     );
   }
 }
@@ -28,7 +26,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-
   bool switcher = true;
 
   @override
@@ -46,12 +43,8 @@ class MyHomePageState extends State<MyHomePage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                switcher ?
-                'A simple text' : 'Hello World!',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                ),
+                switcher ? 'A simple text' : 'Hello World!',
+                style: const TextStyle(color: Colors.white, fontSize: 22),
               ),
             ),
             ElevatedButton(
@@ -61,7 +54,7 @@ class MyHomePageState extends State<MyHomePage> {
                   switcher = !switcher;
                 });
               },
-            )
+            ),
           ],
         ),
       ),

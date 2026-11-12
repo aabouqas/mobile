@@ -12,9 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const MyHomePage(),
-        theme: ThemeData(
-            colorSchemeSeed: const Color(0xFF6B7B3E)
-        ),
+      theme: ThemeData(colorSchemeSeed: const Color(0xFF6B7B3E)),
     );
   }
 }
@@ -26,20 +24,33 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   static const List<String> btns = [
-    '7', '8', '9', 'C', 'AC',
-    '4', '5', '6', '+', '-',
-    '1', '2', '3', '*', '/',
-    '0', '.', '00', '=', ''];
+    '7',
+    '8',
+    '9',
+    'C',
+    'AC',
+    '4',
+    '5',
+    '6',
+    '+',
+    '-',
+    '1',
+    '2',
+    '3',
+    '*',
+    '/',
+    '0',
+    '.',
+    '00',
+    '=',
+    '',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calculator'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Calculator'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox.expand(
@@ -48,13 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
             spacing: 4,
             children: [
               Expanded(
-                child: Column(
-                  spacing: 4,
-                  children: [
-                    _txt('0'),
-                    _txt('0'),
-                  ],
-                ),
+                child: Column(spacing: 4, children: [_txt('0'), _txt('0')]),
               ),
               Expanded(
                 child: Column(
@@ -75,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -83,6 +88,21 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _txt(String txt) => Text(txt, style: const TextStyle(fontSize: 28),);
-  Widget _btn(String txt) => TextButton( onPressed: txt.isEmpty ? null : () => debugPrint('button pressed :$txt'), child: _txt(txt),);
+  Color getColor(String txt) {
+    if ('AC'.contains(txt)) {
+      return Colors.red;
+    } else if ('+-/*='.contains(txt)) {
+      return Colors.grey;
+    }
+    return Colors.black;
+  }
+
+  Widget _txt(String txt) =>
+      Text(txt, style: TextStyle(fontSize: 28, color: getColor(txt)));
+
+  Widget _btn(String txt) => TextButton(
+    style: TextButton.styleFrom(padding: .zero),
+    onPressed: txt.isEmpty ? null : () => debugPrint('button pressed :$txt'),
+    child: FittedBox(fit: BoxFit.scaleDown, child: _txt(txt)),
+  );
 }
