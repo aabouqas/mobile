@@ -50,7 +50,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Calculator'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Calculator'),
+        centerTitle: true,
+        elevation: .infinity,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox.expand(
