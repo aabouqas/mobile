@@ -11,9 +11,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: .fromSeed(seedColor: Colors.green),
       ),
       home: const MyHomePage(),
     );
@@ -28,24 +27,54 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  Map<IconData, String> tabs = {
+    Icons.settings: "Currently",
+    Icons.calendar_today_rounded: "Today",
+    Icons.calendar_month_sharp: "Weekly"
+  };
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          decoration: InputDecoration(
-            icon: Icon(Icons.search),
-            hint: Text('Search location...', maxLines: 1, style: TextStyle(
-              color: Colors.grey,
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const TextField(
+            decoration: InputDecoration(
+              icon: Icon(Icons.search),
+              border: .none,
+              focusedBorder: .none,
+              hint: Text('Search location...', maxLines: 1, style: TextStyle(
+                color: Colors.grey,
+              ),
+              )
             ),
-            )
           ),
+          actions: [
+            IconButton(onPressed: () {}, icon: const Icon(Icons.gps_fixed))
+          ],
         ),
-        actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.gps_fixed))
-        ],
+        body: TabBarView(
+            children: tabs.entries.map((entry) =>
+                  Center(
+                      child: Text(
+                        entry.value,
+                        style: const TextStyle(
+                            fontSize: 30
+                        ),
+                      )
+                  )
+              ).toList(),
+            ),
+        bottomNavigationBar: BottomAppBar(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          padding: .zero,
+          child: TabBar(
+              tabs: tabs.entries.map((entry) => Tab(icon: Icon(entry.key), text: entry.value,)).toList(),
+        ),
       ),
-      body: Container(),
+      )
     );
   }
 }
