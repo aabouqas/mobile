@@ -28,11 +28,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  String _displayText = "";
+  final TextEditingController _textEditingController = TextEditingController();
+
   Map<IconData, String> tabs = {
-    Icons.settings: "Currently",
-    Icons.calendar_today_rounded: "Today",
-    Icons.calendar_month_sharp: "Weekly"
+    Icons.settings_rounded: "Currently",
+    Icons.today_rounded: "Today",
+    Icons.calendar_month_rounded: "Weekly"
   };
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +49,9 @@ class _MyHomePageState extends State<MyHomePage> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const TextField(
-            decoration: InputDecoration(
+          title: TextField(
+            controller: _textEditingController,
+            decoration: const InputDecoration(
               icon: Icon(Icons.search),
               border: .none,
               focusedBorder: .none,
@@ -50,18 +60,28 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               )
             ),
+            onSubmitted: (text) {
+              setState(() {
+                _displayText = text;
+              });
+            },
           ),
           actions: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.gps_fixed))
+            IconButton(onPressed: () => setState(() {
+              _textEditingController.clear();
+              _displayText = "Geolocation";
+            }), icon: const Icon(Icons.gps_fixed))
           ],
         ),
         body: TabBarView(
             children: tabs.entries.map((entry) =>
                   Center(
                       child: Text(
-                        entry.value,
+                        '${entry.value}\n$_displayText'.trim(),
+                        textAlign: .center,
                         style: const TextStyle(
-                            fontSize: 30
+                            fontSize: 30,
+                            fontWeight: .bold,
                         ),
                       )
                   )
