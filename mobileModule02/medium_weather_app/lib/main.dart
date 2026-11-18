@@ -122,23 +122,23 @@ class _MyHomePageState extends State<MyHomePage> {
           children: tabs.entries
               .map(
                 (entry) => Center(
-                  child: Text(
-                    _currentPosition != null
-                        ? '${entry.value}\n${_currentPosition!.latitude},${_currentPosition!.longitude}'
-                              .trim()
-                        : !_isLoading
-                        ? "Geolocation is not enabled, please enable it in your App settings."
-                        : "...",
-                    textAlign: .center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: _currentPosition != null || _isLoading
-                          ? Colors.black
-                          : Colors.red,
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : Text(
+                          _currentPosition != null
+                              ? '${entry.value}\n${_currentPosition!.latitude},${_currentPosition!.longitude}'
+                                    .trim()
+                              : "Geolocation is not enabled, please enable it in your App settings.",
+                          textAlign: .center,
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: _currentPosition != null
+                                ? Colors.black
+                                : Colors.red,
 
-                      fontWeight: .bold,
-                    ),
-                  ),
+                            fontWeight: .bold,
+                          ),
+                        ),
                 ),
               )
               .toList(),
