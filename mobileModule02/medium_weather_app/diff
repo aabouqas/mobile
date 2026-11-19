@@ -1,0 +1,443 @@
+diff --git a/mobileModule02/medium_weather_app/android/app/src/main/AndroidManifest.xml b/mobileModule02/medium_weather_app/android/app/src/main/AndroidManifest.xml
+index 3f701dd..f6780dd 100644
+--- a/mobileModule02/medium_weather_app/android/app/src/main/AndroidManifest.xml
++++ b/mobileModule02/medium_weather_app/android/app/src/main/AndroidManifest.xml
+@@ -1,6 +1,7 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
++    <uses-permission android:name="android.permission.INTERNET" />
+     <application
+         android:label="medium_weather_app"
+         android:name="${applicationName}"
+diff --git a/mobileModule02/medium_weather_app/lib/main.dart b/mobileModule02/medium_weather_app/lib/main.dart
+index 873d282..80bda0d 100644
+--- a/mobileModule02/medium_weather_app/lib/main.dart
++++ b/mobileModule02/medium_weather_app/lib/main.dart
+@@ -1,4 +1,5 @@
+ import 'dart:convert';
++import 'dart:developer';
+ 
+ import 'package:flutter/material.dart';
+ import 'package:geolocator/geolocator.dart';
+@@ -8,6 +9,51 @@ void main() {
+   runApp(const MyApp());
+ }
+ 
++enum TabType {
++  currently,
++  today,
++  weekly;
++
++  String stringValue() {
++    switch (this) {
++      case TabType.currently:
++        return "Currently";
++      case TabType.today:
++        return "Today";
++      case TabType.weekly:
++        return "Weekly";
++    }
++  }
++
++  IconData getIcon() {
++    switch (this) {
++      case TabType.currently:
++        return Icons.sunny;
++      case TabType.today:
++        return Icons.today_rounded;
++      case TabType.weekly:
++        return Icons.calendar_month_rounded;
++    }
++  }
++}
++
++enum ErrorType {
++  location,
++  weather,
++  search;
++
++  String message() {
++    switch (this) {
++      case ErrorType.location:
++        return "Geolocation is not available, please enable it in your App settings.";
++      case ErrorType.weather:
++        return "The service connection is lost, please check your internet or try again later.";
++      case ErrorType.search:
++        return "Could not find any result for this supplied address or coordinates.";
++    }
++  }
++}
++
+ class MyApp extends StatelessWidget {
+   const MyApp({super.key});
+ 
+@@ -30,15 +76,11 @@ class MyHomePage extends StatefulWidget {
+ 
+ class _MyHomePageState extends State<MyHomePage> {
+   bool _isLoading = true;
+-  Position? _currentPosition;
+   List _suggestions = [];
+-  final TextEditingController _textEditingController = TextEditingController();
++  Map<String, dynamic> _currentWeather = {};
++  ErrorType? _errType;
+ 
+-  Map<IconData, String> tabs = {
+-    Icons.settings_rounded: "Currently",
+-    Icons.today_rounded: "Today",
+-    Icons.calendar_month_rounded: "Weekly",
+-  };
++  final TextEditingController _textEditingController = TextEditingController();
+ 
+   @override
+   void initState() {
+@@ -49,9 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
+   Future<void> _fetchCurrentLocation() async {
+     debugPrint("Fetching location...");
+     setLoading(true);
+-    _currentPosition = null;
+     bool isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+     if (!isServiceEnabled) {
++      setErrorType(.location);
+       setLoading(false);
+       return;
+     }
+@@ -59,6 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
+ 
+     if (permission == .deniedForever) {
+       setLoading(false);
++      setErrorType(.location);
+       return;
+     }
+ 
+@@ -66,6 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
+       permission = await Geolocator.requestPermission();
+       if (permission == .denied || permission == .deniedForever) {
+         setLoading(false);
++        setErrorType(.location);
+         return;
+       }
+     }
+@@ -76,8 +120,24 @@ class _MyHomePageState extends State<MyHomePage> {
+         ),
+       );
+       debugPrint("Location: $pos");
+-      _currentPosition = pos;
++      final url = Uri.parse(
++        'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.latitude}&longitude=${pos.longitude}&localityLanguage=en',
++      );
++      final response = await http.get(url);
++      if (response.statusCode == 200) {
++        final data = jsonDecode(response.body);
++        Map<String, dynamic> city = {
++          'latitude': pos.latitude,
++          'longitude': pos.longitude,
++          'name': data['locality'],
++          'admin1': data['principalSubdivision'],
++          'country': data['countryName'],
++        };
++        setErrorType(null);
++        await _fetchCityWeather(city);
++      }
+     } catch (e) {
++      setErrorType(.weather);
+       debugPrint("Location error: $e");
+     } finally {
+       setLoading(false);
+@@ -85,6 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
+   }
+ 
+   void setLoading(bool isLoading) => setState(() => _isLoading = isLoading);
++  void setErrorType(ErrorType? errType) => setState(() => _errType = errType);
+ 
+   @override
+   void dispose() {
+@@ -107,13 +168,15 @@ class _MyHomePageState extends State<MyHomePage> {
+               hint: const Text(
+                 'Search location...',
+                 maxLines: 1,
+-                style: TextStyle(color: Colors.grey),
++                style: TextStyle(color: Colors.grey, fontSize: 16),
+               ),
+               suffixIcon: _textEditingController.text.isNotEmpty
+                   ? IconButton(
+                       icon: const Icon(Icons.clear),
+                       onPressed: () {
+                         _textEditingController.clear();
++                        _removeFocus();
++                        _fetchCurrentLocation();
+                         setState(() => _suggestions = []);
+                       },
+                     )
+@@ -124,9 +187,9 @@ class _MyHomePageState extends State<MyHomePage> {
+               if (_suggestions.isNotEmpty) {
+                 Map<String, dynamic> toSearch = _suggestions.first;
+                 setState(() => _suggestions = []);
+-                _fetchCityWeather(toSearch);
+-                _removeFocus();
++                await _fetchCityWeather(toSearch);
+               }
++              _removeFocus();
+             },
+             textInputAction: .go,
+           ),
+@@ -143,26 +206,12 @@ class _MyHomePageState extends State<MyHomePage> {
+         body: Stack(
+           children: [
+             TabBarView(
+-              children: tabs.entries
++              children: TabType.values
+                   .map(
+-                    (entry) => Center(
++                    (tab) => Center(
+                       child: _isLoading
+                           ? const Center(child: CircularProgressIndicator())
+-                          : Text(
+-                              _currentPosition != null
+-                                  ? '${entry.value}\n${_currentPosition!.latitude},${_currentPosition!.longitude}'
+-                                        .trim()
+-                                  : "Geolocation is not enabled, please enable it in your App settings.",
+-                              textAlign: .center,
+-                              style: TextStyle(
+-                                fontSize: 30,
+-                                color: _currentPosition != null
+-                                    ? Colors.black
+-                                    : Colors.red,
+-
+-                                fontWeight: .bold,
+-                              ),
+-                            ),
++                          : _buildCurrentTab(tab),
+                     ),
+                   )
+                   .toList(),
+@@ -206,8 +255,11 @@ class _MyHomePageState extends State<MyHomePage> {
+           color: Theme.of(context).scaffoldBackgroundColor,
+           padding: .zero,
+           child: TabBar(
+-            tabs: tabs.entries
+-                .map((entry) => Tab(icon: Icon(entry.key), text: entry.value))
++            tabs: TabType.values
++                .map(
++                  (tab) =>
++                      Tab(icon: Icon(tab.getIcon()), text: tab.stringValue()),
++                )
+                 .toList(),
+           ),
+         ),
+@@ -217,7 +269,10 @@ class _MyHomePageState extends State<MyHomePage> {
+ 
+   Future<void> _searchCities(String query) async {
+     if (query.trim().length < 2 || query.trim().isEmpty) {
+-      setState(() => _suggestions = []);
++      setState(() {
++        _suggestions = [];
++        _errType = null;
++      });
+       return;
+     }
+     final url = Uri.parse(
+@@ -228,11 +283,124 @@ class _MyHomePageState extends State<MyHomePage> {
+       final response = await http.get(url);
+       if (response.statusCode == 200) {
+         final data = jsonDecode(response.body);
++        log(" data['results'] => ${data['results']}");
++
+         setState(() {
+-          _suggestions = data['results'] ?? [];
++          if (data['results'] == null) {
++            _errType = ErrorType.search;
++            _suggestions = [];
++          } else {
++            _suggestions = data['results'] ?? [];
++            _errType = null;
++          }
+         });
+       }
+-    } catch (e) {}
++    } catch (_) {
++      setErrorType(.weather);
++    }
++  }
++
++  Widget _buildCurrentTab(TabType tab) {
++    if (_errType != null) {
++      return Center(
++        child: Padding(
++          padding: const EdgeInsets.all(8.0),
++          child: Text(
++            _errType!.message(),
++            textAlign: .center,
++            style: const TextStyle(color: Colors.red),
++          ),
++        ),
++      );
++    }
++    if (_currentWeather.isEmpty) {
++      return const SizedBox.shrink();
++    }
++    if (tab == .currently) {
++      return Column(
++        children: [
++          Text(_currentWeather['name']),
++          Text(_currentWeather['admin1']),
++          Text(_currentWeather['country']),
++          Text('${_currentWeather['current']?['temperature_2m']}°C'),
++          Text(
++            _getWetherDescription(_currentWeather['current']?['weather_code']),
++          ),
++          Text('${_currentWeather['current']?['wind_speed_10m']} km/h'),
++        ],
++      );
++    }
++    if (tab == .today) {
++      return SingleChildScrollView(
++        child: Column(
++          spacing: 8,
++          children: [
++            Text(_currentWeather['name']),
++            Text(_currentWeather['admin1']),
++            Text(_currentWeather['country']),
++            for (int n = 0; n < 24 && _currentWeather['hourly'] != null; n++)
++              Padding(
++                padding: const EdgeInsets.symmetric(horizontal: 32),
++                child: Row(
++                  mainAxisAlignment: .spaceBetween,
++                  children: [
++                    Text(
++                      _currentWeather['hourly']['time'][n].toString().split(
++                        'T',
++                      )[1],
++                    ),
++                    // _getWetherDescription
++                    Text('${_currentWeather['hourly']['temperature_2m'][n]}°C'),
++                    Text(
++                      '${_currentWeather['hourly']['wind_speed_10m'][n]}km/h',
++                    ),
++                    Text(
++                      _getWetherDescription(
++                        _currentWeather['hourly']['weather_code'][n],
++                      ),
++                    ),
++                  ],
++                ),
++              ),
++          ],
++        ),
++      );
++    }
++    if (tab == .weekly) {
++      return SingleChildScrollView(
++        child: Column(
++          spacing: 8,
++          children: [
++            Text(_currentWeather['name']),
++            Text(_currentWeather['admin1']),
++            Text(_currentWeather['country']),
++            for (int n = 0; n < 7 && _currentWeather['daily'] != null; n++)
++              Padding(
++                padding: const EdgeInsets.symmetric(horizontal: 32),
++                child: Row(
++                  mainAxisAlignment: .spaceBetween,
++                  children: [
++                    Text(_currentWeather['daily']['time'][n].toString()),
++                    // _getWetherDescription
++                    Text(
++                      '${_currentWeather['daily']['temperature_2m_min'][n]}°C',
++                    ),
++                    Text(
++                      '${_currentWeather['daily']['temperature_2m_max'][n]}°C',
++                    ),
++                    Text(
++                      _getWetherDescription(
++                        _currentWeather['daily']['weather_code'][n],
++                      ),
++                    ),
++                  ],
++                ),
++              ),
++          ],
++        ),
++      );
++    }
++    return const SizedBox.shrink();
+   }
+ 
+   Future<void> _fetchCityWeather(Map<dynamic, dynamic> city) async {
+@@ -245,11 +413,73 @@ class _MyHomePageState extends State<MyHomePage> {
+       'timezone': 'auto',
+     });
+ 
+-    final response = await http.get(url);
+-    if (response.statusCode == 200) {
+-      debugPrint('Weather data: ${response.body}');
++    try {
++      final response = await http.get(url);
++      if (response.statusCode == 200) {
++        debugPrint('Weather data: ${response.body}');
++        setState(() {
++          _currentWeather = {
++            ...jsonDecode(response.body),
++            'name': city['name'],
++            'admin1': city['admin1'] ?? "",
++            'country': city['country'],
++          };
++          _errType = null;
++          debugPrint('Weather data: $_currentWeather');
++        });
++      }
++    } catch (e) {
++      setErrorType(.weather);
+     }
+   }
+ 
+   void _removeFocus() => FocusScope.of(context).unfocus();
++
++  String _getWetherDescription(int? code) {
++    switch (code) {
++      case 0:
++        return "Clear sky";
++      case 1:
++      case 2:
++      case 3:
++        return "Mainly clear";
++      case 45:
++      case 48:
++        return "Fog and freezing fog";
++      case 51:
++      case 53:
++      case 55:
++        return "Drizzle";
++      case 56:
++      case 57:
++        return "Freezing drizzle";
++      case 61:
++      case 63:
++      case 65:
++        return "Rain";
++      case 66:
++      case 67:
++        return "Freezing rain";
++      case 71:
++      case 73:
++      case 75:
++        return "Snow";
++      case 77:
++        return "Snow grains";
++      case 80:
++      case 81:
++      case 82:
++        return "Rain showers";
++      case 85:
++      case 86:
++        return "Snow showers";
++      case 95:
++        return "Thunderstorm";
++      case 96:
++      case 99:
++        return "Thunderstorm with hail";
++      default:
++        return "Unknown";
++    }
++  }
+ }
