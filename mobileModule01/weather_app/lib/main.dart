@@ -4,6 +4,34 @@ void main() {
   runApp(const MyApp());
 }
 
+enum TabType {
+  currently,
+  today,
+  weekly;
+
+  String stringValue() {
+    switch (this) {
+      case TabType.currently:
+        return "Currently";
+      case TabType.today:
+        return "Today";
+      case TabType.weekly:
+        return "Weekly";
+    }
+  }
+
+  IconData getIcon() {
+    switch (this) {
+      case TabType.currently:
+        return Icons.sunny;
+      case TabType.today:
+        return Icons.today_rounded;
+      case TabType.weekly:
+        return Icons.calendar_month_rounded;
+    }
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -11,9 +39,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.green),
-      ),
+      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.green)),
       home: const MyHomePage(),
     );
   }
@@ -27,15 +53,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   String _displayText = "";
   final TextEditingController _textEditingController = TextEditingController();
-
-  Map<IconData, String> tabs = {
-    Icons.settings_rounded: "Currently",
-    Icons.today_rounded: "Today",
-    Icons.calendar_month_rounded: "Weekly"
-  };
 
   @override
   void dispose() {
@@ -55,10 +74,11 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.search),
               border: .none,
               focusedBorder: .none,
-              hint: Text('Search location...', maxLines: 1, style: TextStyle(
-                color: Colors.grey,
+              hint: Text(
+                'Search location...',
+                maxLines: 1,
+                style: TextStyle(color: Colors.grey),
               ),
-              )
             ),
             onSubmitted: (text) {
               setState(() {
@@ -67,34 +87,41 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
           actions: [
-            IconButton(onPressed: () => setState(() {
-              _textEditingController.clear();
-              _displayText = "Geolocation";
-            }), icon: const Icon(Icons.gps_fixed))
+            IconButton(
+              onPressed: () => setState(() {
+                _textEditingController.clear();
+                _displayText = "Geolocation";
+              }),
+              icon: const Icon(Icons.gps_fixed),
+            ),
           ],
         ),
         body: TabBarView(
-            children: tabs.entries.map((entry) =>
-                  Center(
-                      child: Text(
-                        '${entry.value}\n$_displayText'.trim(),
-                        textAlign: .center,
-                        style: const TextStyle(
-                            fontSize: 30,
-                            fontWeight: .bold,
-                        ),
-                      )
-                  )
-              ).toList(),
-            ),
+          children: TabType.values
+              .map(
+                (tab) => Center(
+                  child: Text(
+                    '${tab.stringValue()}\n$_displayText'.trim(),
+                    textAlign: .center,
+                    style: const TextStyle(fontSize: 30, fontWeight: .bold),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
         bottomNavigationBar: BottomAppBar(
           color: Theme.of(context).scaffoldBackgroundColor,
           padding: .zero,
           child: TabBar(
-              tabs: tabs.entries.map((entry) => Tab(icon: Icon(entry.key), text: entry.value,)).toList(),
+            tabs: TabType.values
+                .map(
+                  (tab) =>
+                      Tab(icon: Icon(tab.getIcon()), text: tab.stringValue()),
+                )
+                .toList(),
+          ),
         ),
       ),
-      )
     );
   }
 }
