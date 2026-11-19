@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -61,7 +62,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.green)),
+      theme: ThemeData(
+        colorScheme: .fromSeed(seedColor: Colors.blue, brightness: .dark),
+      ),
       home: const MyHomePage(),
     );
   }
@@ -157,120 +160,162 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Container(
-            alignment: .center,
-            padding: const .symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: TextField(
-              textAlignVertical: .center,
-              controller: _textEditingController,
-              decoration: InputDecoration(
-                icon: const Icon(Icons.search),
-                border: .none,
-                focusedBorder: .none,
-                hint: const Text(
-                  'Search location...',
-                  maxLines: 1,
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-                suffixIcon: _textEditingController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _textEditingController.clear();
-                          _removeFocus();
-                          _fetchCurrentLocation();
-                          setState(() => _suggestions = []);
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (txt) => _searchCities(txt),
-              onSubmitted: (text) async {
-                if (_suggestions.isNotEmpty) {
-                  Map<String, dynamic> toSearch = _suggestions.first;
-                  setState(() => _suggestions = []);
-                  await _fetchCityWeather(toSearch);
-                }
-                _removeFocus();
-              },
-              textInputAction: .go,
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/bg.jpg'),
+            fit: BoxFit.cover,
+            colorFilter: .mode(
+              Colors.black.withValues(alpha: .60),
+              BlendMode.darken,
             ),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.gps_fixed),
-              onPressed: () {
-                _textEditingController.clear();
-                _fetchCurrentLocation();
-              },
-            ),
-          ],
         ),
-        body: Stack(
-          children: [
-            TabBarView(
-              children: TabType.values
-                  .map(
-                    (tab) => Center(
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _buildCurrentTab(tab),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            title: Container(
+              height: 44,
+              alignment: .center,
+              clipBehavior: .antiAlias,
+              padding: const .symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: TextField(
+                  textAlignVertical: .center,
+                  controller: _textEditingController,
+                  decoration: InputDecoration(
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
                     ),
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: .none,
+                    focusedBorder: .none,
+                    hintText: 'Search location...',
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    prefixIcon: const Icon(Icons.search, size: 22),
+                    suffixIcon: _textEditingController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _textEditingController.clear();
+                              _removeFocus();
+                              _fetchCurrentLocation();
+                              setState(() => _suggestions = []);
+                            },
+                          )
+                        : null,
+                  ),
+                  onChanged: (txt) => _searchCities(txt),
+                  onSubmitted: (text) async {
+                    if (_suggestions.isNotEmpty) {
+                      Map<String, dynamic> toSearch = _suggestions.first;
+                      setState(() => _suggestions = []);
+                      await _fetchCityWeather(toSearch);
+                    }
+                    _removeFocus();
+                  },
+                  textInputAction: .go,
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.gps_fixed),
+                onPressed: () {
+                  _textEditingController.clear();
+                  _fetchCurrentLocation();
+                },
+              ),
+            ],
+          ),
+          body: Stack(
+            children: [
+              TabBarView(
+                children: TabType.values
+                    .map(
+                      (tab) => Center(
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : _buildCurrentTab(tab),
+                      ),
+                    )
+                    .toList(),
+              ),
+              if (_suggestions.isNotEmpty)
+                Container(
+                  padding: const .symmetric(horizontal: 20),
+                  child: Material(
+                    color: Colors.blue.withValues(alpha: 0.12),
+                    clipBehavior: .antiAlias,
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) => ListTile(
+                          leading: const Icon(Icons.location_city),
+                          title: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '${_suggestions[index]["name"]} ',
+                                  style: const TextStyle(fontWeight: .bold),
+                                ),
+                                if (_suggestions[index]["admin1"] != null &&
+                                    _suggestions[index]["admin1"]
+                                        .toString()
+                                        .isNotEmpty)
+                                  TextSpan(
+                                    text: "${_suggestions[index]["admin1"]}, ",
+                                  ),
+                                TextSpan(
+                                  text: "${_suggestions[index]["country"]}",
+                                ),
+                              ],
+                            ),
+                          ),
+                          onTap: () {
+                            debugPrint(
+                              "Selected => ${_suggestions[index]['name']}",
+                            );
+                            _removeFocus();
+                            _fetchCityWeather(_suggestions[index]);
+                            setState(() => _suggestions = []);
+                          },
+                        ),
+                        itemCount: _suggestions.length,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          bottomNavigationBar: BottomAppBar(
+            color: Colors.transparent,
+            padding: .zero,
+            child: TabBar(
+              tabs: TabType.values
+                  .map(
+                    (tab) =>
+                        Tab(icon: Icon(tab.getIcon()), text: tab.stringValue()),
                   )
                   .toList(),
             ),
-            if (_suggestions.isNotEmpty)
-              Material(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: ListView.builder(
-                  itemBuilder: (context, index) => ListTile(
-                    leading: const Icon(Icons.location_city),
-                    title: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${_suggestions[index]["name"]} ',
-                            style: const TextStyle(fontWeight: .bold),
-                          ),
-                          if (_suggestions[index]["admin1"] != null &&
-                              _suggestions[index]["admin1"]
-                                  .toString()
-                                  .isNotEmpty)
-                            TextSpan(
-                              text: "${_suggestions[index]["admin1"]}, ",
-                            ),
-                          TextSpan(text: "${_suggestions[index]["country"]}"),
-                        ],
-                      ),
-                    ),
-                    onTap: () {
-                      debugPrint("Selected => ${_suggestions[index]['name']}");
-                      _removeFocus();
-                      _fetchCityWeather(_suggestions[index]);
-                      setState(() => _suggestions = []);
-                    },
-                  ),
-                  itemCount: _suggestions.length,
-                ),
-              ),
-          ],
-        ),
-        bottomNavigationBar: BottomAppBar(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          padding: .zero,
-          child: TabBar(
-            tabs: TabType.values
-                .map(
-                  (tab) =>
-                      Tab(icon: Icon(tab.getIcon()), text: tab.stringValue()),
-                )
-                .toList(),
           ),
         ),
       ),
