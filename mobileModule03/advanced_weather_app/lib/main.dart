@@ -312,87 +312,82 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ],
             ),
-            body: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Stack(
-                children: [
-                  TabBarView(
-                    children: TabType.values
-                        .map(
-                          (tab) => Center(
-                            child: _isLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                : LayoutBuilder(
-                                    builder: (context, constraints) =>
-                                        SingleChildScrollView(
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              minHeight: constraints.maxHeight,
-                                            ),
-                                            child: _buildCurrentTab(tab),
+            body: Stack(
+              children: [
+                TabBarView(
+                  children: TabType.values
+                      .map(
+                        (tab) => Center(
+                          child: _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : LayoutBuilder(
+                                  builder: (context, constraints) =>
+                                      SingleChildScrollView(
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight: constraints.maxHeight,
                                           ),
+                                          child: _buildCurrentTab(tab),
                                         ),
-                                  ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  if (_suggestions.isNotEmpty)
-                    Container(
-                      padding: const .symmetric(horizontal: 20),
-                      clipBehavior: .antiAlias,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Material(
-                          // clipBehavior: .antiAlias,
-                          color: Colors.grey.withValues(alpha: 0.30),
-                          borderRadius: BorderRadius.circular(12),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) => ListTile(
-                              leading: const Icon(Icons.location_city),
-                              title: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '${_suggestions[index]["name"]} ',
-                                      style: const TextStyle(fontWeight: .bold),
-                                    ),
-                                    if (_suggestions[index]["admin1"] != null &&
-                                        _suggestions[index]["admin1"]
-                                            .toString()
-                                            .isNotEmpty)
-                                      TextSpan(
-                                        text:
-                                            "${_suggestions[index]["admin1"]}, ",
                                       ),
-                                    TextSpan(
-                                      text: "${_suggestions[index]["country"]}",
-                                    ),
-                                  ],
                                 ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                if (_suggestions.isNotEmpty)
+                  Container(
+                    padding: const .symmetric(horizontal: 20),
+                    clipBehavior: .antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Material(
+                        // clipBehavior: .antiAlias,
+                        color: Colors.grey.withValues(alpha: 0.30),
+                        borderRadius: BorderRadius.circular(12),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) => ListTile(
+                            leading: const Icon(Icons.location_city),
+                            title: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '${_suggestions[index]["name"]} ',
+                                    style: const TextStyle(fontWeight: .bold),
+                                  ),
+                                  if (_suggestions[index]["admin1"] != null &&
+                                      _suggestions[index]["admin1"]
+                                          .toString()
+                                          .isNotEmpty)
+                                    TextSpan(
+                                      text:
+                                          "${_suggestions[index]["admin1"]}, ",
+                                    ),
+                                  TextSpan(
+                                    text: "${_suggestions[index]["country"]}",
+                                  ),
+                                ],
                               ),
-                              onTap: () {
-                                debugPrint(
-                                  "Selected => ${_suggestions[index]['name']}",
-                                );
-                                _removeFocus();
-                                _fetchCityWeather(_suggestions[index]);
-                                setState(() => _suggestions = []);
-                              },
                             ),
-                            itemCount: _suggestions.length,
+                            onTap: () {
+                              debugPrint(
+                                "Selected => ${_suggestions[index]['name']}",
+                              );
+                              _removeFocus();
+                              _fetchCityWeather(_suggestions[index]);
+                              setState(() => _suggestions = []);
+                            },
                           ),
+                          itemCount: _suggestions.length,
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
             bottomNavigationBar: BottomAppBar(
               color: Colors.transparent,
@@ -464,215 +459,364 @@ class _MyHomePageState extends State<MyHomePage> {
       return const SizedBox.shrink();
     }
     if (tab == .currently) {
-      return Column(
-        spacing: 42,
-        mainAxisAlignment: .center,
-        children: [
-          _buildHeader(),
-
-          Text(
-            '${_currentWeather['current']?['temperature_2m']}°C',
-            style: const TextStyle(color: Colors.amber, fontSize: 48),
-          ),
-
-          Column(
-            spacing: 8,
-            children: [
-              Text(
-                _getWetherDescription(
-                  _currentWeather['current']?['weather_code'],
-                ),
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-              ),
-              Icon(
-                _getIcon(_currentWeather['current']?['weather_code']),
-                size: 100,
-              ),
-            ],
-          ),
-
-          Row(
-            spacing: 8,
-            mainAxisAlignment: .center,
-            children: [
-              const Icon(Icons.air, color: Colors.blue),
-              Text(
-                '${_currentWeather['current']?['wind_speed_10m']} km/h',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-    if (tab == .today) {
-      return SingleChildScrollView(
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          spacing: 22,
+          spacing: 42,
+          mainAxisAlignment: .center,
           children: [
             _buildHeader(),
-            Container(
-              padding: const .all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('Today temperatures'),
-                  ),
-                  SizedBox(
-                    height: 200,
-                    child: LineChart(
-                      LineChartData(
-                        borderData: FlBorderData(show: false),
-                        titlesData: FlTitlesData(
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              interval: 3,
-                              reservedSize: 34,
-                              getTitlesWidget: (val, _) {
-                                if (val == 23) return const SizedBox.shrink();
-                                return Text(
-                                  '${val.toInt().toString().padLeft(2, '0')}:00',
-                                  style: const TextStyle(fontSize: 10),
-                                );
-                              },
-                            ),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              // interval: 1,
-                              showTitles: true,
-                              reservedSize: 36,
-                              getTitlesWidget: (val, meta) {
-                                if (val == meta.min || val == meta.max) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Text(
-                                  '${val.toInt()}°',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.white70,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: List.generate(
-                              24,
-                              (i) => FlSpot(
-                                i.toDouble(),
-                                (_currentWeather['hourly']['temperature_2m'][i]
-                                        as num)
-                                    .toDouble(),
-                              ),
-                            ),
-                            isCurved: true,
-                            color: Colors.amber,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+
+            Text(
+              '${_currentWeather['current']?['temperature_2m']}°C',
+              style: const TextStyle(color: Colors.amber, fontSize: 48),
             ),
 
-            SizedBox(
-              height: 150,
-              child: ListView.separated(
-                separatorBuilder: (context, n) => const SizedBox(width: 2),
-                itemCount: 24,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, n) {
-                  return Container(
-                    width: 100,
-                    alignment: .center,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      spacing: 8,
-                      mainAxisSize: .min,
-                      children: [
-                        Text(
-                          _currentWeather['hourly']['time'][n].toString().split(
-                            'T',
-                          )[1],
-                        ),
-                        Icon(
-                          _getIcon(
-                            _currentWeather['hourly']?['weather_code'][n],
-                          ),
-                        ),
-                        Text(
-                          '${_currentWeather['hourly']['temperature_2m'][n]}°C',
-                        ),
+            Column(
+              spacing: 8,
+              children: [
+                Text(
+                  _getWetherDescription(
+                    _currentWeather['current']?['weather_code'],
+                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                Icon(
+                  _getIcon(_currentWeather['current']?['weather_code']),
+                  size: 100,
+                ),
+              ],
+            ),
 
-                        Row(
-                          mainAxisSize: .min,
-                          mainAxisAlignment: .center,
-                          spacing: 4,
-                          children: [
-                            const Icon(Icons.air, color: Colors.blue, size: 14),
-                            Text(
-                              '${_currentWeather['hourly']['wind_speed_10m'][n]}km/h',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            Row(
+              spacing: 8,
+              mainAxisAlignment: .center,
+              children: [
+                const Icon(Icons.air, color: Colors.blue),
+                Text(
+                  '${_currentWeather['current']?['wind_speed_10m']} km/h',
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ],
             ),
           ],
         ),
       );
     }
-    if (tab == .weekly) {
+    if (tab == .today) {
       return SingleChildScrollView(
-        child: Column(
-          spacing: 8,
-          children: [
-            _buildHeader(),
-            for (int n = 0; n < 7 && _currentWeather['daily'] != null; n++)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  mainAxisAlignment: .spaceBetween,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            spacing: 24,
+            children: [
+              _buildHeader(),
+              Container(
+                padding: const .all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
                   children: [
-                    Text(_currentWeather['daily']['time'][n].toString()),
-                    // _getWetherDescription
-                    Text(
-                      '${_currentWeather['daily']['temperature_2m_min'][n]}°C',
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Today temperatures'),
                     ),
-                    Text(
-                      '${_currentWeather['daily']['temperature_2m_max'][n]}°C',
-                    ),
-                    Text(
-                      _getWetherDescription(
-                        _currentWeather['daily']['weather_code'][n],
+                    SizedBox(
+                      height: 200,
+                      child: LineChart(
+                        LineChartData(
+                          borderData: FlBorderData(show: false),
+                          titlesData: FlTitlesData(
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 3,
+                                reservedSize: 34,
+                                getTitlesWidget: (val, _) {
+                                  if (val == 23) return const SizedBox.shrink();
+                                  return Text(
+                                    '${val.toInt().toString().padLeft(2, '0')}:00',
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                // interval: 1,
+                                showTitles: true,
+                                reservedSize: 36,
+                                getTitlesWidget: (val, meta) {
+                                  if (val == meta.min || val == meta.max) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Text(
+                                    '${val.toInt()}°',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: List.generate(
+                                24,
+                                (i) => FlSpot(
+                                  i.toDouble(),
+                                  (_currentWeather['hourly']['temperature_2m'][i]
+                                          as num)
+                                      .toDouble(),
+                                ),
+                              ),
+                              isCurved: true,
+                              color: Colors.amber,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-          ],
+
+              SizedBox(
+                height: 150,
+                child: ListView.separated(
+                  separatorBuilder: (context, n) => const SizedBox(width: 2),
+                  itemCount: 24,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, n) {
+                    return Container(
+                      width: 100,
+                      alignment: .center,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        spacing: 8,
+                        mainAxisSize: .min,
+                        children: [
+                          Text(
+                            _currentWeather['hourly']['time'][n]
+                                .toString()
+                                .split('T')[1],
+                          ),
+                          Icon(
+                            _getIcon(
+                              _currentWeather['hourly']?['weather_code'][n],
+                            ),
+                          ),
+                          Text(
+                            '${_currentWeather['hourly']['temperature_2m'][n]}°C',
+                          ),
+
+                          Row(
+                            mainAxisSize: .min,
+                            mainAxisAlignment: .center,
+                            spacing: 4,
+                            children: [
+                              const Icon(
+                                Icons.air,
+                                color: Colors.blue,
+                                size: 14,
+                              ),
+                              Text(
+                                '${_currentWeather['hourly']['wind_speed_10m'][n]}km/h',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    if (tab == .weekly) {
+      return SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            spacing: 24,
+            children: [
+              _buildHeader(),
+
+              Container(
+                padding: const .all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    const Padding(
+                      padding: .only(bottom: 16),
+                      child: Text('Weekly temperatures'),
+                    ),
+                    SizedBox(
+                      height: 200,
+                      child: LineChart(
+                        LineChartData(
+                          borderData: FlBorderData(show: false),
+                          titlesData: FlTitlesData(
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 1,
+                                reservedSize: 34,
+                                getTitlesWidget: (val, _) {
+                                  if (val == 23) return const SizedBox.shrink();
+                                  return Text(
+                                    _getDayOfWeek(
+                                      _currentWeather['daily']['time'][val
+                                          .toInt()],
+                                    ),
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                interval: 5,
+                                showTitles: true,
+                                reservedSize: 36,
+                                getTitlesWidget: (val, meta) {
+                                  if (val == meta.min || val == meta.max) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Text(
+                                    '${val.toInt()}°',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: List.generate(
+                                7,
+                                (i) => FlSpot(
+                                  i.toDouble(),
+                                  (_currentWeather['daily']['temperature_2m_max'][i]
+                                          as num)
+                                      .toDouble(),
+                                ),
+                              ),
+                              isCurved: true,
+                              color: Colors.red,
+                            ),
+                            // if (false)
+                            LineChartBarData(
+                              spots: List.generate(
+                                7,
+                                (i) => FlSpot(
+                                  i.toDouble(),
+                                  (_currentWeather['daily']['temperature_2m_min'][i]
+                                          as num)
+                                      .toDouble(),
+                                ),
+                              ),
+                              isCurved: true,
+                              color: Colors.blue,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Row(
+                      mainAxisSize: .min,
+                      children: [
+                        Icon(
+                          Icons.commit_rounded,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
+                        Text('Min temperature', style: TextStyle(fontSize: 11)),
+                        SizedBox(width: 12),
+                        Icon(Icons.commit_rounded, color: Colors.red, size: 18),
+                        Text('Max temperature', style: TextStyle(fontSize: 11)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(
+                height: 150,
+                child: ListView.separated(
+                  separatorBuilder: (context, n) => const SizedBox(width: 2),
+                  itemCount: 6,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, n) {
+                    return Container(
+                      width: 100,
+                      alignment: .center,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        spacing: 8,
+                        mainAxisSize: .min,
+                        children: [
+                          Text(
+                            _getDayOfWeek(_currentWeather['daily']['time'][n]),
+                          ),
+                          Icon(
+                            _getIcon(
+                              _currentWeather['daily']?['weather_code'][n],
+                            ),
+                          ),
+                          Text(
+                            '${_currentWeather['daily']['temperature_2m_max'][n]}°C max',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            '${_currentWeather['daily']['temperature_2m_min'][n]}°C min',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -731,4 +875,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
+
+  String _getDayOfWeek(String date) =>
+      '${date.split('-')[1]}/${date.split('-')[2]}';
 }
