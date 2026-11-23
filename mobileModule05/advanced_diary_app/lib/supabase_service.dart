@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:advanced_diary_app/diary.dart';
+import 'package:advanced_diary_app/utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService {
@@ -24,14 +25,15 @@ class SupabaseService {
           .order('updated_at', ascending: false)
           .order('created_at', ascending: false);
 
+      log("DEBUG: ${response.toString()}");
+
       return response.map((e) => Diary.fromMap(e)).toList();
     } catch (e) {
-      log("DEBUG: ${e.toString()}");
       return [];
     }
   }
 
-  static Future<Map<String, int>?> getUserWeeklyFeelings() async {
+  static Future<Map<FeelingType, int>?> getUserWeeklyFeelings() async {
     try {
       if (supabase.auth.currentUser == null) {
         throw Exception('User is not logged in');
@@ -41,7 +43,8 @@ class SupabaseService {
 
       return {
         for (final row in data)
-          row['icon'] as String: (row['percentage'] as num).toInt(),
+          FeelingType.fromIndex(row['icon']): (row['percentage'] as num)
+              .toInt(),
       };
     } catch (e) {
       log("DEBUG: ${e.toString()}");

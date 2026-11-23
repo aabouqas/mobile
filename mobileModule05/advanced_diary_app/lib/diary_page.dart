@@ -16,7 +16,7 @@ class _DiaryPageState extends State<DiaryPage> {
   final user = Supabase.instance.client.auth.currentUser;
   bool isLogouting = false;
   Future<List<Diary>>? futureDiaries;
-  Future<Map<String, int>>? weeklyFeelings;
+  Future<Map<FeelingType, int>>? weeklyFeelings;
   int _diaryLength = 0;
 
   @override
@@ -37,7 +37,7 @@ class _DiaryPageState extends State<DiaryPage> {
     });
   }
 
-  Future<Map<String, int>> _fetchWeeklyFeelings() async =>
+  Future<Map<FeelingType, int>> _fetchWeeklyFeelings() async =>
       await SupabaseService.getUserWeeklyFeelings() ?? {};
 
   @override
@@ -171,13 +171,13 @@ class _DiaryPageState extends State<DiaryPage> {
                         leading: Container(
                           padding: .all(4),
                           decoration: BoxDecoration(
-                            color: getIconColor(diary.icon)
+                            color: FeelingType.fromIndex(diary.feeling).color
                                 .withValues(alpha: .2),
                             shape: .circle,
                           ),
                           child: Icon(
                             diary.getIcon(),
-                            color: getIconColor(diary.icon),
+                            color: FeelingType.fromIndex(diary.feeling).color,
                           ),
                         ),
                         trailing: Text(diary.getFormattedDate()),
@@ -240,21 +240,20 @@ class _DiaryPageState extends State<DiaryPage> {
               } else if (snapshot.hasError) {
                 return Center(child: Text('Error loading diaries'));
               } else {
-                final feelings = snapshot.data!;
-                if (feelings.isEmpty) {
-                  return Center(child: Text('No diaries found'));
+                final data = snapshot.data!;
+                if (data.isEmpty) {
+                  return Center(child: Text('No data found'));
                 }
                 return Column(
                   spacing: 6,
-                  children: feelingIcons.entries.map((iconEntry) {
+                  children: FeelingType.values.map((feeling) {
                     return Material(
                       clipBehavior: Clip.antiAlias,
                       borderRadius: .circular(12),
                       child: Container(
                         padding: .all(10),
                         decoration: BoxDecoration(
-                          color: getIconColor(iconEntry.key)
-                              .withValues(alpha: .1),
+                          color: feeling.color.withValues(alpha: .1),
                         ),
                         child: Row(
                           spacing: 8,
@@ -262,17 +261,13 @@ class _DiaryPageState extends State<DiaryPage> {
                             Container(
                               padding: .all(4),
                               decoration: BoxDecoration(
-                                color: getIconColor(iconEntry.key)
-                                    .withValues(alpha: .2),
+                                color: feeling.color.withValues(alpha: .2),
                                 shape: .circle,
                               ),
-                              child: Icon(
-                                iconEntry.value,
-                                color: getIconColor(iconEntry.key),
-                              ),
+                              child: Icon(feeling.icon, color: feeling.color),
                             ),
                             Text(
-                              '${feelings[iconEntry.key.toLowerCase()]}%',
+                              '${data[feeling] ?? '0'}%',
                               maxLines: 2,
                               overflow: .ellipsis,
                             ),

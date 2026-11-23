@@ -20,7 +20,7 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _textController = TextEditingController();
-  String icon = "";
+  FeelingType feeling = FeelingType.neutral;
   bool _isEditMode = false;
   bool _isSaving = false;
   bool _isDeleting = false;
@@ -30,7 +30,7 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
     super.initState();
     _titleController.text = diary?.title ?? '';
     _textController.text = diary?.text ?? '';
-    icon = diary?.icon ?? 'neutral';
+    feeling = FeelingType.fromIndex(diary?.feeling ?? 0);
     _isEditMode = diary == null;
   }
 
@@ -149,9 +149,10 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
                       style: TextStyle(fontSize: 28, fontWeight: .bold),
                     ),
                     _IconPicker(
-                      icon: icon,
+                      feeling: feeling,
                       readOnly: !_isEditMode,
-                      onChanged: (icon) => setState(() => this.icon = icon!),
+                      onChanged: (feeling) =>
+                          setState(() => this.feeling = feeling!),
                     ),
                   ],
                 ),
@@ -199,11 +200,11 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
 
       if (_isEditMode && diary != null) {
         await SupabaseService.updateDiary(
-          diary!.copyWith(title: title, text: text, icon: icon),
+          diary!.copyWith(title: title, text: text, feeling: feeling.index),
         );
       } else {
         await SupabaseService.insertDiary(
-          Diary(title: title, text: text, icon: icon),
+          Diary(title: title, text: text, feeling: feeling.index),
         );
       }
 
@@ -242,19 +243,19 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
 }
 
 class _IconPicker extends StatelessWidget {
-  final String icon;
+  final FeelingType feeling;
   final bool readOnly;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<FeelingType?> onChanged;
   const _IconPicker({
-    required this.icon,
+    required this.feeling,
     required this.readOnly,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currentIcon = feelingIcons.containsKey(icon) ? icon : 'neutral';
-    return DropdownButton<String>(
+    final currentIcon = feeling;
+    return DropdownButton<FeelingType>(
       padding: .zero,
       value: currentIcon,
       isDense: true,
@@ -263,11 +264,11 @@ class _IconPicker extends StatelessWidget {
       selectedItemBuilder: readOnly
           ? null
           : (context) {
-              return feelingIcons.entries.map((entry) {
+              return FeelingType.values.map((entry) {
                 return Stack(
                   clipBehavior: .none,
                   children: [
-                    Icon(entry.value, size: 32, color: getIconColor(entry.key)),
+                    Icon(entry.icon, size: 32, color: entry.color),
                     if (!readOnly)
                       Positioned(
                         bottom: -10,
@@ -285,10 +286,10 @@ class _IconPicker extends StatelessWidget {
                 );
               }).toList();
             },
-      items: feelingIcons.entries.map((entry) {
-        return DropdownMenuItem<String>(
-          value: entry.key,
-          child: Icon(entry.value, size: 32, color: getIconColor(entry.key)),
+      items: FeelingType.values.map((entry) {
+        return DropdownMenuItem<FeelingType>(
+          value: entry,
+          child: Icon(entry.icon, size: 32, color: entry.color),
         );
       }).toList(),
       onChanged: !readOnly ? onChanged : null,

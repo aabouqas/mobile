@@ -1,11 +1,11 @@
+import 'package:advanced_diary_app/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 class Diary {
   final int? id;
   final String? title;
   final String? text;
-  final String? icon;
+  final int? feeling;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -13,7 +13,7 @@ class Diary {
     this.id,
     required this.title,
     required this.text,
-    required this.icon,
+    required this.feeling,
     this.createdAt,
     this.updatedAt,
   });
@@ -23,7 +23,7 @@ class Diary {
       id: map['id'],
       title: map['title'],
       text: map['text'],
-      icon: map['icon'],
+      feeling: map['icon'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: map['updated_at'] != null
           ? DateTime.parse(map['updated_at'])
@@ -32,27 +32,10 @@ class Diary {
   }
 
   Map<String, dynamic> toMap() {
-    return {'title': title, 'text': text, 'icon': icon};
+    return {'title': title, 'text': text, 'icon': feeling};
   }
 
-  IconData getIcon() {
-    switch (icon) {
-      case 'very_satisfied':
-        return Icons.sentiment_very_satisfied;
-      case 'satisfied':
-        return Icons.sentiment_satisfied;
-      case 'neutral':
-        return Icons.sentiment_neutral;
-      case 'dissatisfied':
-        return Icons.sentiment_dissatisfied;
-      case 'very_dissatisfied':
-        return Icons.sentiment_very_dissatisfied;
-      case 'angry':
-        return Symbols.sentiment_extremely_dissatisfied;
-      default:
-        return Icons.sentiment_neutral;
-    }
-  }
+  IconData getIcon() => FeelingType.fromIndex(feeling).icon;
 
   String getFormattedDate() {
     const months = [
@@ -78,7 +61,7 @@ class Diary {
     int? id,
     String? title,
     String? text,
-    String? icon,
+    int? feeling,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -86,7 +69,7 @@ class Diary {
       id: id ?? this.id,
       title: title ?? this.title,
       text: text ?? this.text,
-      icon: icon ?? this.icon,
+      feeling: feeling ?? this.feeling,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
