@@ -1,5 +1,5 @@
-import 'package:diary_app/DiaryScreen.dart';
-import 'package:diary_app/SupabaseService.dart';
+import 'package:diary_app/diary_screen.dart';
+import 'package:diary_app/supabase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,7 +17,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.blue)),
-      home: const WelcomePage(),
+      home: StreamBuilder(
+        stream: SupabaseService.supabase.auth.onAuthStateChange,
+        builder: (context, snapshot) {
+          if (snapshot.data?.session != null) {
+            return const DiaryScreen();
+          }
+          return const WelcomePage();
+        },
+      ),
     );
   }
 }
@@ -31,35 +39,49 @@ class WelcomePage extends StatefulWidget {
 
 class _WelcomePageState extends State<WelcomePage> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          spacing: 12,
-          children: [
-            Text.rich(
-              TextSpan(
-                text: "Welcome to your ",
-                children: [
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(image: AssetImage("assets/bg.jpg"), fit: .cover),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: const EdgeInsets.all(7),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: .center,
+              spacing: 12,
+              children: [
+                Text.rich(
                   TextSpan(
-                    text: "Diary",
-                    style: TextStyle(color: Colors.blue),
+                    text: "Welcome to your ",
+                    children: [
+                      TextSpan(
+                        text: "Diary",
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              textAlign: .center,
-              style: TextStyle(fontSize: 50, fontWeight: .w600),
+                  textAlign: .center,
+                  style: TextStyle(fontSize: 50, fontWeight: .w600),
+                ),
+                FilledButton(
+                  onPressed: () => _handleAuth(),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(Colors.blue),
+                    foregroundColor: WidgetStatePropertyAll(Colors.white),
+                  ),
+                  child: Text("Login"),
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () => _handleAuth(),
-              style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(Colors.blue),
-                foregroundColor: WidgetStatePropertyAll(Colors.white),
-              ),
-              child: Text("Login"),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -70,6 +92,7 @@ class _WelcomePageState extends State<WelcomePage> {
       await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'dev.eledrissi.diary://login-callback/',
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
     } else {
       Navigator.pushReplacement(
