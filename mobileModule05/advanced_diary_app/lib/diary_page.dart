@@ -137,6 +137,7 @@ class _DiaryPageState extends State<DiaryPage> {
             padding: const .only(bottom: 16),
             child: Text(
               "Your last diary entries",
+              textAlign: .center,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: .bold,
@@ -222,6 +223,7 @@ class _DiaryPageState extends State<DiaryPage> {
             padding: const .only(bottom: 16),
             child: Text(
               "Your feel for your last $_diaryLength entries",
+              textAlign: .center,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: .bold,
@@ -241,13 +243,9 @@ class _DiaryPageState extends State<DiaryPage> {
                 if (feelings.isEmpty) {
                   return Center(child: Text('No diaries found'));
                 }
-                return ListView.separated(
-                  separatorBuilder: (ctx, index) => SizedBox(height: 6),
-                  itemCount: 6,
-                  shrinkWrap: true,
-                  padding: .only(bottom: 80),
-                  itemBuilder: (context, index) {
-                    final iconEntry = feelingIcons.entries.elementAt(index);
+                return Column(
+                  spacing: 6,
+                  children: feelingIcons.entries.map((iconEntry) {
                     return Material(
                       clipBehavior: Clip.antiAlias,
                       borderRadius: .circular(12),
@@ -281,7 +279,7 @@ class _DiaryPageState extends State<DiaryPage> {
                         ),
                       ),
                     );
-                  },
+                  }).toList(),
                 );
               }
             },

@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.18.3
   material_symbols_icons: ^4.2960.0
+  table_calendar: ^3.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
