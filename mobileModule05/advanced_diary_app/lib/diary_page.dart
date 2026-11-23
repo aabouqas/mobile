@@ -44,6 +44,7 @@ class _DiaryPageState extends State<DiaryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         toolbarHeight: 100,
         title: _buildProfileHeader(),
         centerTitle: true,
@@ -100,7 +101,7 @@ class _DiaryPageState extends State<DiaryPage> {
             user?.userMetadata?['name'] ?? '',
             maxLines: 3,
             softWrap: true,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
         Center(
