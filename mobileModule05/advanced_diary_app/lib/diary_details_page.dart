@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:advanced_diary_app/supabase_service.dart';
-import 'package:advanced_diary_app/utils.dart';
+import 'package:advanced_diary_app/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:advanced_diary_app/diary.dart';
 
@@ -116,60 +116,60 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
             ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            spacing: 12,
-            children: [
-              TextField(
-                controller: _titleController,
-                readOnly: !_isEditMode,
-                maxLength: 64,
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 32,
-                  fontWeight: .bold,
-                ),
-                decoration: InputDecoration(
-                  border: .none,
-                  hintText: 'Title',
-                  counterText: "",
-                  hintStyle: TextStyle(color: Colors.blue, fontSize: 32),
-                ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          spacing: 12,
+          children: [
+            TextField(
+              controller: _titleController,
+              readOnly: !_isEditMode,
+              maxLength: 64,
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 32,
+                fontWeight: .bold,
               ),
-              Row(
-                spacing: 12,
-                crossAxisAlignment: .center,
-                children: [
-                  Text(
-                    "My feeling",
-                    style: TextStyle(fontSize: 28, fontWeight: .bold),
-                  ),
-                  _IconPicker(
-                    feeling: feeling,
-                    readOnly: !_isEditMode,
-                    onChanged: (feeling) =>
-                        setState(() => this.feeling = feeling!),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: TextField(
-                    maxLines: null,
-                    keyboardType: .multiline,
-                    decoration: InputDecoration(
-                      border: .none,
-                      hintText: "What is in your mind?",
-                    ),
-                    controller: _textController,
-                    readOnly: !_isEditMode,
+              decoration: InputDecoration(
+                border: _isEditMode ? null : .none,
+                hintText: 'Title',
+                counterText: "",
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.blue.withValues(alpha: 0.4),
+                    width: 1.5,
                   ),
                 ),
+                hintStyle: TextStyle(color: Colors.blue, fontSize: 32),
               ),
-            ],
-          ),
+            ),
+            Row(
+              spacing: 12,
+              crossAxisAlignment: .center,
+              children: [
+                Text(
+                  "My feeling",
+                  style: TextStyle(fontSize: 28, fontWeight: .bold),
+                ),
+                _IconPicker(
+                  feeling: feeling,
+                  readOnly: !_isEditMode,
+                  onChanged: (feeling) =>
+                      setState(() => this.feeling = feeling!),
+                ),
+              ],
+            ),
+            TextField(
+              maxLines: null,
+              keyboardType: .multiline,
+              decoration: InputDecoration(
+                border: .none,
+                hintText: "What is in your mind?",
+              ),
+              controller: _textController,
+              readOnly: !_isEditMode,
+            ),
+          ],
         ),
       ),
     );
