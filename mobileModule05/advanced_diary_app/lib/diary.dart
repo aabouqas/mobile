@@ -1,5 +1,6 @@
-import 'package:advanced_diary_app/utils.dart';
+import 'package:advanced_diary_app/shared.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Diary {
   final int? id;
@@ -37,25 +38,7 @@ class Diary {
 
   IconData getIcon() => FeelingType.fromIndex(feeling).icon;
 
-  String getFormattedDate() {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    var date = updatedAt ?? createdAt;
-    if (date == null) return '';
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
+  String getFormattedDate() => DateFormat.yMMMd().format(createdAt!);
 
   Diary copyWith({
     int? id,
