@@ -1,6 +1,7 @@
 import 'package:advanced_diary_app/diary_page.dart';
 import 'package:advanced_diary_app/home_page.dart';
 import 'package:advanced_diary_app/supabase_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -49,15 +50,33 @@ class MyApp extends StatelessWidget {
           unselectedItemColor: Colors.grey,
           elevation: 0,
         ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+        ),
+        progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.blue),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: FadeForwardsPageTransitionsBuilder(
+              backgroundColor: Colors.transparent,
+            ),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
       builder: (context, child) {
         return Stack(
           fit: .expand,
           children: [
-            Image.asset('assets/bg.jpg', fit: .cover),
+            Image.asset(
+              'assets/bg.jpg',
+              fit: .cover,
+              cacheWidth: 1080,
+              // opacity: const AlwaysStoppedAnimation(0.25),
+            ),
             BackdropFilter(
-              filter: .blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.white.withValues(alpha: 0.15)),
+              filter: .blur(sigmaX: 3, sigmaY: 3),
+              child: Container(color: Colors.white.withValues(alpha: 0.2)),
             ),
             child ?? SizedBox.shrink(),
           ],
