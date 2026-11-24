@@ -42,7 +42,7 @@ class SupabaseService {
       return response.map((e) => Diary.fromMap(e)).toList();
     } catch (e) {
       return [];
-    } 
+    }
   }
 
   static Future<Map<FeelingType, int>?> getFeelingRates() async {
@@ -55,7 +55,7 @@ class SupabaseService {
 
       return {
         for (final row in data)
-          FeelingType.fromIndex(row['icon']): (row['percentage'] as num)
+          FeelingType.fromIndex(row['feeling']): (row['percentage'] as num)
               .toInt(),
       };
     } catch (e) {

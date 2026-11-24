@@ -24,7 +24,7 @@ class Diary {
       id: map['id'],
       title: map['title'],
       text: map['text'],
-      feeling: map['icon'],
+      feeling: map['feeling'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: map['updated_at'] != null
           ? DateTime.parse(map['updated_at'])
@@ -33,7 +33,7 @@ class Diary {
   }
 
   Map<String, dynamic> toMap() {
-    return {'title': title, 'text': text, 'icon': feeling};
+    return {'title': title, 'text': text, 'feeling': feeling};
   }
 
   IconData getIcon() => FeelingType.fromIndex(feeling).icon;
