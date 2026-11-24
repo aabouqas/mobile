@@ -1,7 +1,7 @@
 import 'package:advanced_diary_app/diary.dart';
 import 'package:advanced_diary_app/diary_details_page.dart';
 import 'package:advanced_diary_app/supabase_service.dart';
-import 'package:advanced_diary_app/utils.dart';
+import 'package:advanced_diary_app/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -15,15 +15,22 @@ class DiaryPage extends StatefulWidget {
 class _DiaryPageState extends State<DiaryPage> {
   final user = Supabase.instance.client.auth.currentUser;
   bool isLogouting = false;
-  Future<List<Diary>>? futureDiaries;
-  Future<Map<FeelingType, int>>? feelingsRate;
+  Future<List<Diary>>? _futureDiaries;
+  Future<Map<FeelingType, int>>? _feelingsRate;
   int _diaryLength = 0;
 
   @override
   void initState() {
     super.initState();
-    futureDiaries = _fetchDiaries();
-    feelingsRate = _fetchFeelingsRate();
+    _futureDiaries = _fetchDiaries();
+    _feelingsRate = _fetchFeelingsRate();
+    SupabaseService.refreshNotifier.addListener(_loadData);
+  }
+
+  @override
+  void dispose() {
+    SupabaseService.refreshNotifier.removeListener(_loadData);
+    super.dispose();
   }
 
   Future<List<Diary>> _fetchDiaries() async {
@@ -40,6 +47,13 @@ class _DiaryPageState extends State<DiaryPage> {
   Future<Map<FeelingType, int>> _fetchFeelingsRate() async =>
       await SupabaseService.getFeelingRates() ?? {};
 
+  void _loadData() {
+    setState(() {
+      _futureDiaries = _fetchDiaries();
+      _feelingsRate = _fetchFeelingsRate();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +69,10 @@ class _DiaryPageState extends State<DiaryPage> {
             crossAxisAlignment: .start,
             spacing: 12,
             children: [
-              _buildDiriesList(),
+              DiariesList(
+                futureDiaries: _futureDiaries,
+                title: "Your last diary entries",
+              ),
               _buildWeeklyFeelingsSection(),
               SizedBox(height: 80),
             ],
@@ -73,10 +90,7 @@ class _DiaryPageState extends State<DiaryPage> {
               builder: (context) => DiaryDetailsPage(diary: null),
             ),
           );
-          setState(() {
-            futureDiaries = _fetchDiaries();
-            feelingsRate = _fetchFeelingsRate();
-          });
+          _loadData();
         },
       ),
     );
@@ -125,101 +139,14 @@ class _DiaryPageState extends State<DiaryPage> {
     );
   }
 
-  Widget _buildDiriesList() {
-    return Container(
-      padding: .all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: .1),
-        borderRadius: .circular(12),
-      ),
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          Padding(
-            padding: const .only(bottom: 16),
-            child: Text(
-              "Your last diary entries",
-              textAlign: .center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: .bold,
-                color: Colors.blue,
-              ),
-            ),
-          ),
-          FutureBuilder(
-            future: futureDiaries,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error loading diaries'));
-              } else {
-                final diaries = snapshot.data!;
-                if (diaries.isEmpty) {
-                  return Center(child: Text('No diaries found'));
-                }
-                return ListView.separated(
-                  separatorBuilder: (ctx, index) => SizedBox(height: 8),
-                  itemCount: diaries.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final diary = diaries[index];
-                    return Material(
-                      clipBehavior: Clip.antiAlias,
-                      borderRadius: .circular(12),
-                      child: ListTile(
-                        leading: Container(
-                          padding: .all(4),
-                          decoration: BoxDecoration(
-                            color: FeelingType.fromIndex(diary.feeling).color
-                                .withValues(alpha: .2),
-                            shape: .circle,
-                          ),
-                          child: Icon(
-                            diary.getIcon(),
-                            color: FeelingType.fromIndex(diary.feeling).color,
-                          ),
-                        ),
-                        trailing: Text(diary.getFormattedDate()),
-                        title: Text(
-                          diary.title ?? 'No Title',
-                          style: TextStyle(fontWeight: .bold),
-                        ),
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DiaryDetailsPage(diary: diary),
-                            ),
-                          );
-                          setState(() {
-                            futureDiaries = _fetchDiaries();
-                            feelingsRate = _fetchFeelingsRate();
-                          });
-                        },
-                      ),
-                    );
-                  },
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildWeeklyFeelingsSection() {
     return Container(
       padding: .all(20),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: .1),
+        color: Colors.blue.withValues(alpha: .15),
         borderRadius: .circular(12),
       ),
       child: Column(
-        mainAxisSize: .min,
         children: [
           Padding(
             padding: const .only(bottom: 16),
@@ -234,16 +161,24 @@ class _DiaryPageState extends State<DiaryPage> {
             ),
           ),
           FutureBuilder(
-            future: feelingsRate,
+            future: _feelingsRate,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
+                return LoadingIndicator();
               } else if (snapshot.hasError) {
-                return Center(child: Text('Error loading diaries'));
+                return EmptyState(
+                  title: 'Error loading feelings',
+                  description: 'Something went wrong.',
+                  icon: Icons.sentiment_neutral_rounded,
+                );
               } else {
                 final data = snapshot.data!;
                 if (data.isEmpty) {
-                  return Center(child: Text('No data found'));
+                  return EmptyState(
+                    title: 'No Feelings',
+                    description: 'You have no feelings yet.',
+                    icon: Icons.sentiment_satisfied_rounded,
+                  );
                 }
                 return Column(
                   spacing: 6,
@@ -254,7 +189,7 @@ class _DiaryPageState extends State<DiaryPage> {
                       child: Container(
                         padding: .all(10),
                         decoration: BoxDecoration(
-                          color: feeling.color.withValues(alpha: .1),
+                          color: feeling.color.withValues(alpha: .2),
                         ),
                         child: Row(
                           spacing: 8,
@@ -262,7 +197,7 @@ class _DiaryPageState extends State<DiaryPage> {
                             Container(
                               padding: .all(4),
                               decoration: BoxDecoration(
-                                color: feeling.color.withValues(alpha: .2),
+                                color: feeling.color.withValues(alpha: .3),
                                 shape: .circle,
                               ),
                               child: Icon(feeling.icon, color: feeling.color),
