@@ -16,14 +16,14 @@ class _DiaryPageState extends State<DiaryPage> {
   final user = Supabase.instance.client.auth.currentUser;
   bool isLogouting = false;
   Future<List<Diary>>? futureDiaries;
-  Future<Map<FeelingType, int>>? weeklyFeelings;
+  Future<Map<FeelingType, int>>? feelingsRate;
   int _diaryLength = 0;
 
   @override
   void initState() {
     super.initState();
     futureDiaries = _fetchDiaries();
-    weeklyFeelings = _fetchWeeklyFeelings();
+    feelingsRate = _fetchFeelingsRate();
   }
 
   Future<List<Diary>> _fetchDiaries() async {
@@ -37,27 +37,28 @@ class _DiaryPageState extends State<DiaryPage> {
     });
   }
 
-  Future<Map<FeelingType, int>> _fetchWeeklyFeelings() async =>
-      await SupabaseService.getUserWeeklyFeelings() ?? {};
+  Future<Map<FeelingType, int>> _fetchFeelingsRate() async =>
+      await SupabaseService.getFeelingRates() ?? {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        scrolledUnderElevation: 0,
+        // scrolledUnderElevation: 0,
         toolbarHeight: 100,
         title: _buildProfileHeader(),
-        centerTitle: true,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: .start,
-              spacing: 12,
-              children: [_buildDiriesList(), _buildWeeklyFeelingsSection()],
-            ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: .start,
+            spacing: 12,
+            children: [
+              _buildDiriesList(),
+              _buildWeeklyFeelingsSection(),
+              SizedBox(height: 80),
+            ],
           ),
         ),
       ),
@@ -74,7 +75,7 @@ class _DiaryPageState extends State<DiaryPage> {
           );
           setState(() {
             futureDiaries = _fetchDiaries();
-            weeklyFeelings = _fetchWeeklyFeelings();
+            feelingsRate = _fetchFeelingsRate();
           });
         },
       ),
@@ -195,7 +196,7 @@ class _DiaryPageState extends State<DiaryPage> {
                           );
                           setState(() {
                             futureDiaries = _fetchDiaries();
-                            weeklyFeelings = _fetchWeeklyFeelings();
+                            feelingsRate = _fetchFeelingsRate();
                           });
                         },
                       ),
@@ -233,7 +234,7 @@ class _DiaryPageState extends State<DiaryPage> {
             ),
           ),
           FutureBuilder(
-            future: weeklyFeelings,
+            future: feelingsRate,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return Center(child: CircularProgressIndicator());

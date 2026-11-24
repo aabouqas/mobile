@@ -33,7 +33,7 @@ class SupabaseService {
     }
   }
 
-  static Future<Map<FeelingType, int>?> getUserWeeklyFeelings() async {
+  static Future<Map<FeelingType, int>?> getFeelingRates() async {
     try {
       if (supabase.auth.currentUser == null) {
         throw Exception('User is not logged in');
