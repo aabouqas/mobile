@@ -1,10 +1,12 @@
 import 'dart:developer';
 
 import 'package:advanced_diary_app/diary.dart';
-import 'package:advanced_diary_app/utils.dart';
+import 'package:advanced_diary_app/shared.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService {
+  static final ValueNotifier<int> refreshNotifier = ValueNotifier(0);
   static SupabaseClient supabase = Supabase.instance.client;
   static Future<void> initialize() async {
     await Supabase.initialize(
@@ -13,15 +15,25 @@ class SupabaseService {
     );
   }
 
-  static Future<List<Diary>> getUserDiaries() async {
+  static Future<List<Diary>> getUserDiaries({DateTime? date}) async {
     try {
       if (supabase.auth.currentUser == null) {
         throw Exception('User is not logged in');
       }
-      final response = await supabase
+      var query = supabase
           .from('notes')
           .select('*')
-          .eq('usermail', supabase.auth.currentUser!.email!)
+          .eq('usermail', supabase.auth.currentUser!.email!);
+
+      if (date != null) {
+        final startOfDay = DateTime.utc(date.year, date.month, date.day);
+        final nextDay = startOfDay.add(const Duration(days: 1));
+        query = query
+            .gte('created_at', date.toUtc().toIso8601String())
+            .lt('created_at', nextDay.toUtc().toIso8601String());
+      }
+
+      final response = await query
           .order('updated_at', ascending: false)
           .order('created_at', ascending: false);
 
@@ -30,7 +42,7 @@ class SupabaseService {
       return response.map((e) => Diary.fromMap(e)).toList();
     } catch (e) {
       return [];
-    }
+    } 
   }
 
   static Future<Map<FeelingType, int>?> getFeelingRates() async {
@@ -73,6 +85,8 @@ class SupabaseService {
     } catch (e) {
       log("DEBUG: ${e.toString()}");
       return false;
+    } finally {
+      refreshNotifier.value++;
     }
   }
 
@@ -84,6 +98,8 @@ class SupabaseService {
     } catch (e) {
       log("DEBUG: ${e.toString()}");
       return false;
+    } finally {
+      refreshNotifier.value++;
     }
   }
 
@@ -92,6 +108,8 @@ class SupabaseService {
       await supabase.from('notes').delete().eq('id', id!);
     } catch (e) {
       log("DEBUG: ${e.toString()}");
+    } finally {
+      refreshNotifier.value++;
     }
   }
 }
