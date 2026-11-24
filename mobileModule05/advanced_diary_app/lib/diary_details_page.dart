@@ -43,135 +43,132 @@ class _DiaryDetailsPageState extends State<DiaryDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            !_isEditMode
-                ? diary!.getFormattedDate()
-                : diary == null
-                ? "New Diary"
-                : "Edit Diary",
-            style: TextStyle(fontWeight: .bold),
-          ),
-          actions: [
-            if (diary != null && !_isEditMode)
-              PopupMenuButton(
-                icon: const Icon(Icons.more_vert),
-                itemBuilder: (context) {
-                  return [
-                    PopupMenuItem(
-                      value: "edit",
-                      child: Row(
-                        spacing: 2,
-                        children: [
-                          Icon(Icons.edit_outlined, size: 18),
-                          Text("Edit"),
-                        ],
-                      ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          !_isEditMode
+              ? diary!.getFormattedDate()
+              : diary == null
+              ? "New Diary"
+              : "Edit Diary",
+          style: TextStyle(fontWeight: .bold),
+        ),
+        actions: [
+          if (diary != null && !_isEditMode)
+            PopupMenuButton(
+              icon: const Icon(Icons.more_vert),
+              itemBuilder: (context) {
+                return [
+                  PopupMenuItem(
+                    value: "edit",
+                    child: Row(
+                      spacing: 2,
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18),
+                        Text("Edit"),
+                      ],
                     ),
-                    PopupMenuItem(
-                      value: "delete",
-                      child: Row(
-                        spacing: 2,
-                        children: [
-                          Icon(
-                            Icons.delete_outline_rounded,
-                            color: Colors.red,
-                            size: 18,
-                          ),
-                          Text("Delete", style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
+                  ),
+                  PopupMenuItem(
+                    value: "delete",
+                    child: Row(
+                      spacing: 2,
+                      children: [
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.red,
+                          size: 18,
+                        ),
+                        Text("Delete", style: TextStyle(color: Colors.red)),
+                      ],
                     ),
-                  ];
-                },
-                onSelected: (item) {
-                  switch (item) {
-                    case "edit":
-                      _setEditing(!_isEditMode);
-                      break;
-                    case "delete":
-                      _delete();
-                      break;
+                  ),
+                ];
+              },
+              onSelected: (item) {
+                switch (item) {
+                  case "edit":
+                    _setEditing(!_isEditMode);
+                    break;
+                  case "delete":
+                    _delete();
+                    break;
 
-                    default:
-                  }
-                },
+                  default:
+                }
+              },
+            ),
+          if (_isEditMode && !_isSaving && !_isDeleting)
+            IconButton(
+              onPressed: () => _submit(),
+              icon: const Icon(
+                Icons.check,
+                color: Colors.blue,
+                fontWeight: .bold,
               ),
-            if (_isEditMode && !_isSaving && !_isDeleting)
-              IconButton(
-                onPressed: () => _submit(),
-                icon: const Icon(
-                  Icons.check,
+            ),
+          if (_isSaving || _isDeleting)
+            Container(
+              width: 20,
+              height: 20,
+              margin: .only(right: 16),
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            spacing: 12,
+            children: [
+              TextField(
+                controller: _titleController,
+                readOnly: !_isEditMode,
+                maxLength: 64,
+                style: TextStyle(
                   color: Colors.blue,
+                  fontSize: 32,
                   fontWeight: .bold,
                 ),
+                decoration: InputDecoration(
+                  border: .none,
+                  hintText: 'Title',
+                  counterText: "",
+                  hintStyle: TextStyle(color: Colors.blue, fontSize: 32),
+                ),
               ),
-            if (_isSaving || _isDeleting)
-              Container(
-                width: 20,
-                height: 20,
-                margin: .only(right: 16),
-                child: CircularProgressIndicator(strokeWidth: 3),
+              Row(
+                spacing: 12,
+                crossAxisAlignment: .center,
+                children: [
+                  Text(
+                    "My feeling",
+                    style: TextStyle(fontSize: 28, fontWeight: .bold),
+                  ),
+                  _IconPicker(
+                    feeling: feeling,
+                    readOnly: !_isEditMode,
+                    onChanged: (feeling) =>
+                        setState(() => this.feeling = feeling!),
+                  ),
+                ],
               ),
-          ],
-        ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              spacing: 12,
-              children: [
-                TextField(
-                  controller: _titleController,
-                  readOnly: !_isEditMode,
-                  maxLength: 64,
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 32,
-                    fontWeight: .bold,
-                  ),
-                  decoration: InputDecoration(
-                    border: .none,
-                    hintText: 'Title',
-                    counterText: "",
-                    hintStyle: TextStyle(color: Colors.blue, fontSize: 32),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: TextField(
+                    maxLines: null,
+                    keyboardType: .multiline,
+                    decoration: InputDecoration(
+                      border: .none,
+                      hintText: "What is in your mind?",
+                    ),
+                    controller: _textController,
+                    readOnly: !_isEditMode,
                   ),
                 ),
-                Row(
-                  spacing: 12,
-                  crossAxisAlignment: .center,
-                  children: [
-                    Text(
-                      "My feeling",
-                      style: TextStyle(fontSize: 28, fontWeight: .bold),
-                    ),
-                    _IconPicker(
-                      feeling: feeling,
-                      readOnly: !_isEditMode,
-                      onChanged: (feeling) =>
-                          setState(() => this.feeling = feeling!),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: TextField(
-                      maxLines: null,
-                      keyboardType: .multiline,
-                      decoration: InputDecoration(
-                        border: .none,
-                        hintText: "What is in your mind?",
-                      ),
-                      controller: _textController,
-                      readOnly: !_isEditMode,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
